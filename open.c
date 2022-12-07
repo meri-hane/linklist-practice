@@ -14,82 +14,107 @@ typedef struct node
       struct node *next;
 } NODE;
 
-NODE *head[MAX];
+NODE *chain[MAX];
 
-void insert();
-void search();
-void display();
-
-void insert()
+void init()
 {
-      int d;
-      printf("Enter the element to be inserted: ");
-      scanf("%d", &d);
-      int x = d % MAX;
-      NODE *newnode = (NODE *)malloc(sizeof(NODE));
-      newnode->data = d;
-      newnode->next = NULL;
-      if (head[x] == NULL)
-            head[x] = newnode;
+      for (int i = 0; i < MAX; i++)
+            chain[i] = NULL;
+}
+
+void insert(int value)
+{
+      int key = value % MAX;
+      NODE *p, *q, *newNode;
+      p = q = chain[key];
+      newNode = (NODE *)malloc(sizeof(NODE));
+      newNode->data = value;
+      newNode->next = NULL;
+
+      while (p != NULL && value > p->data)
+      {
+            q = p;
+            p = p->next;
+      }
+      // check if chain[key] is empty
+      if (p == chain[key])
+            chain[key] = newNode;
+      // collision
       else
       {
-            NODE *ptr;
-            ptr = head[x];
-            int flag = 1;
-            while (ptr->next != NULL)
+            // add the node at the end of chain[key].
+            NODE *temp = chain[key];
+            while (temp->next)
             {
-                  if (ptr->data == d)
-                        flag = 0;
-                  ptr = ptr->next;
+                  temp = temp->next;
             }
-            if (ptr->data == d)
-                  flag = 0;
-            if (flag == 1)
-                  ptr->next = newnode;
-            else
-                  printf("Element already exists!");
+
+            temp->next = newNode;
       }
 }
 
-void search()
+/*
+ * return 1, successful delete
+ * return 0, value not found
+ */
+int del(int value)
 {
-      printf("Enter the element you want to search: ");
-      int d;
-      scanf("%d", &d);
-      int x = d % MAX;
-      NODE *ptr = head[x];
-      int flag = 0;
-      while (ptr != NULL)
+      int key = value % MAX;
+      NODE *p, *q;
+      p = q = chain[key];
+
+      if (p != NULL)
       {
-            if (ptr->data == d)
-                  flag = 1;
-            ptr = ptr->next;
+            if (chain[key]->data == value)
+            {
+                  p = chain[key];
+                  chain[key] = chain[key]->next;
+                  free(p);
+                  return 1;
+            }
+            else
+            {
+                  while (chain[key]->next)
+                  {
+                        if (chain[key]->next->data == value)
+                        {
+                              p = chain[key]->next;
+                              chain[key]->next = chain[key]->next->next;
+                              free(p);
+                              return 1;
+                        }
+                        chain[key] = chain[key]->next;
+                  }
+            }
       }
-      if (flag == 1)
-            printf("Element present");
-      else
-            printf("Element not found");
+
+      printf("Not found.\n");
+
+      system("pause");
 }
 
 void display()
 {
-      printf("\n");
+      printf("\n Key\t   Value\n");
       for (int i = 0; i < MAX; i++)
       {
-            NODE *ptr = head[i];
+            NODE *temp = chain[i];
+
             printf("Bucket %d - ", i);
-            while (ptr != NULL)
+            while (temp != NULL)
             {
-                  printf("%d, ", ptr->data);
-                  ptr = ptr->next;
+                  printf("%d-->", temp->data);
+                  temp = temp->next;
             }
-            printf("\n");
+            printf("NULL\n");
       }
 }
+
 int main()
 {
-      for (int i = 0; i < MAX; i++)
-            head[i] = NULL;
+      // init array of list to NULL
+      int x;
+      init();
       printf("1. Insert\n2. Search\n3. Display\n4. Exit");
       while (1)
       {
@@ -99,16 +124,24 @@ int main()
             switch (ch)
             {
             case 1:
-                  insert();
+                  system("cls");
+                  printf("Insert Mode\n");
+                  printf("Input x: ");
+                  scanf("%d", &x);
+                  insert(x);
                   break;
             case 2:
-                  search();
+                  system("cls");
+                  printf("Delete Mode\n");
+                  printf("Input x: ");
+                  scanf("%d", &x);
+                  del(x);
                   break;
             case 3:
                   display();
                   break;
             case 4:
-                  exit(1);
+                  exit(0);
             default:
                   printf("Invalid\n");
             }
